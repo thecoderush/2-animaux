@@ -2461,8 +2461,8 @@ Donc le "persist()" permet de préparer les requêtes qui seront réalisées et 
 	
 Nous avons donc maintenant dans ce dossier nouvellement créé le fichier AppFixtures.php. Donc on pourrait réaliser toutes nos actions dans ce fichier mais nous pouvons créer nous même un fichier 'fixtures'  en utilisant la commande suivante:
 
-	$ symfony console make:fixture [entity-name]Fixtures.php
-	$ symfony console make:fixture AnimalFixtures.php
+	$ symfony console make:fixture [entity-name]Fixtures
+	$ symfony console make:fixture AnimalFixtures
 	
 Dans notre fichier vous pouvez voir que la fonction load() prend de base un "ObjectManager" $manager qui va nous servir à mettre à jour la BD. Cet ObjectManager est ici intégré dans la fonction et c'est ce que l'on appelle l'injection de dépendance. Cette fonction sait que l'on va récupérer un manager de type ObjectManager qui aura été appelé lors de la création de nos fixtures.
 
@@ -2887,6 +2887,88 @@ AnimalController.php
 	...
 
 ##### 4.30. Modification d'un entité
+
+Dans cette video nous allons rajouter deux champs dans la BD sur la table Animal pour pouvoir disposer d'un "poids" qui sera de type Entier et nous aurons également un booléen "dangereux" qui permettra d'indiquer si un animal est dangereux ou non.
+
+Pour ce faire on utilisera Doctrine et on pourra utiliser la même commande que nous avons utlisé pour créer l'entité Animal. Ici quand on relancera la même commande Symfony détectera que l'entité Animal existe et proposera de rajouter des champs dans cette entité. 
+
+Il faudra ensuite réaliser une migration à nouveau pour rajouter nos deux nouveaux champs dans la BD et pour éviter d'avoir des problèmes lors de la migration on fera en sorte de vider celle-ci. 
+
+Dans un seccond temps, on completera les fixtures pour rajouter les deux nouveaux champs et saisir des informations pour nos animaux. 
+
+Là aussi il faudra apporter les modifications en base de données et pour se faire on relancera les fixtures.
+
+
+1. Ajouter deux champs dans l'entitté "animal"
+2. Vider la base de données manuellement (pour éviter des problèmes lors de la migration)
+3. Lancer la migration
+4. Ajouter des données dans les "Fixtures" pour créer les animaux avec ces nouvelles informations.
+5. Envoyer les données dans la BD et tester si tout fonctionne encore.
+ 
+
+1. Ajouter deux champs dans l'entitté "animal"
+
+		$ symfony console make:entity Animal
+
+		 updated: src/Entity/Animal.php
+		  
+		  Success! 
+
+2. Vider la base de données manuellement (pour éviter des problèmes lors de la migration)
+
+localhost/phpmyadmin
+
+Remarque: on aurait pu faire un petit programme qui permettait de modifier les informations des animaux déjà existant 
+
+3. Lancer la migration
+
+Maintenant que nous avons vidé la BD on peut lancer la migration pour rajouter nos champs sans risquer d'avoir des valeur null dans nos nouveau champs. 
+
+	$ symfony console make:migration
+
+	 Success! 
+           
+
+ 	 Next: Review the new migration "migrations/Version20220511143354.php"
+     Then: Run the migration with php bin/console doctrine:migrations:migrate
+
+Ce qui nous a généré un deuxième fichier de migration. 
+
+	$ symfony console doctrine:migration:migrate
+
+	 [notice] Migrating up to DoctrineMigrations\Version20220511143354
+	 [notice] finished in 29.3ms, used 20M memory, 1 migrations executed, 1 sql queries
+
+Dans la table animal nous avons bien nos deux nouveaux champs.
+
+localhost/phpmyadmin
+
+4. Ajouter des données dans les "Fixtures" pour créer les animaux avec ces nouvelles informations.
+
+AnimalFixtures.php
+
+	...
+	->setPoids(10)
+	->setDangereux(false)
+	...
+	
+	.
+	.
+	.
+
+5. Envoyer les données dans la BD et tester si tout fonctionne encore.
+
+	$ symfony console doctrine:fixtures:load
+
+	 Careful, database "animaux" will be purged. Do you want to continue? (yes/no) [no]:
+ 	 > yes
+
+   	 > purging database
+   	 > loading App\DataFixtures\AppFixtures
+
+localhost/phpmyadmin
+127.0.0.1:8000
+
 ##### 4.31. La page d'un animal
 ##### 4.32. Famille : Relation 1.1 - 1.n
 ##### 4.33. Famille : Affichage
