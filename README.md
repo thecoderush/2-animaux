@@ -3122,6 +3122,168 @@ https://127.0.0.1:8000/animal/8
 
 
 ##### 4.32. Famille : Relation 1.1 - 1.n
+
+(cf. screeshots)
+
+Dans cette video nous allons rajouter une nouvelle table "Famille" qui va permettre de rajouter une catégorie pour nos animaux cad que une animal disposera d'une famille par exemple s'il fait partie des reptiles, des poissons, etc...
+
+Voir MCD
+
+Nous avons déjà notre table Animal. On va créer notre table Famille qui disposera d'un "Libelle" et d'une "Description". 
+
+Ensuite on créera un lien entre ces deux tables en faisant une associtation qui sera de type 1,1 - 1,n  
+
+Avec Symfony et Doctrine on va utiliser une nouvelle fois la ligne de commande et commencer par créer l'entité Famille. 
+
+Cependant, lorsque nous aurons créé nos deux champs "Libelle" et "Description" il faudra rajouter un nouveau champ permettant d'accéder aux informations de nos animaux. Comme on l'a dit une Famille dispose de plusieurs animaux. Dans ce cas, on aura un champ à l'intérieur qui sera rajouté qui permettra de lister l'ensemble des animaux d'une famille.
+
+Parmis les questions que nous aurons à ce moment là il faudra indiquer que nous voulons un nouveau champ dans la table Animal permettant d'avoir sa famille associée. 
+
+Comme nous l'avons dit un animal dispose d'une famille, du coup nous aurons un champ famille qui sera présent dans la table et qui permettra de faire directement le lien pour l'animal avec sa famille.
+
+Ainsi nous créerons deux liens. Dans Famille nous aurons la liste des animaux qui dispose de la famille et dans l'Animal nous saurons à quelle famille appartient cet animal. 
+
+
+1. Ajout d'une table famille pour classifier nos animaux
+2. Créer l'Entity "Famille"
+3. Ajouter un champ "Animaux" de type relation (OneToMany)
+4. Ajout du champ dans la table "animal" (clef étrangère)
+
+On apportera ensuite les modifications au niveau de la BD
+
+5. Une "ArrayCollection" rajoute des méthodes à la gestion des tableaux classiques de PHP
+6. Vider la BD avant de lancer la migration (à cause du nouveau champ)
+7. Réaliser la migration pour créer la nouvelle "Entity"
+
+Et nous ferons en sorte de réaliser une fixture permettant de remplir les familles.
+Et à chaque fois pour chaque animal on indiquera la famille correspondante.
+
+8. Remplissage de la BD : Fixtures
+
+---
+
+1. Ajout d'une table famille pour classifier nos animaux
+2. Créer l'Entity "Famille"
+
+	$ symfony console make:entity [entity-name]
+	$ symfony console make:entity Famille
+
+	 created: src/Entity/Famille.php
+ 	 created: src/Repository/FamilleRepository.php
+
+Ajouter les trois propriétés
+
+	libelle
+	string
+	255
+	no
+
+	description
+	text
+	nullable
+
+3. Ajouter un champ "Animaux" de type relation (OneToMany)
+
+Propriété Relationships / Associations
+
+	animaux
+	relation
+
+4. Ajout du champ dans la table "animal" (clef étrangère)
+	
+	Animal
+	OneToMany
+	famille
+	no
+	no
+
+	 updated: src/Entity/Famille.php
+	 updated: src/Entity/Animal.php
+
+Note: Normalement nullable no, mais cela aura une répercussion au niveau de la BD parce que si vous disposez déjà des données à l'intérieur vous allez avoir qq problèmes lorsque vous allez réaliser la migration. 
+Le plus simple et le plus facile à mettre en place c'est de laisser à YES pour ne pas avoir de problèmes lors de la modification. 
+Je vais ici passer à NO puisque nous allons vider la BD avant de faire la migration. 
+
+Il me demande ensuite si je veux automatiquement supprimer les orphelins animaux cad qu'il n'auraient plus de famille en l'occurence ici NO
+
+Dans Entity/Famille.php on peut voir que le champs créé $animaux est de type ArrayCollection
+
+5. Une "ArrayCollection" rajoute des méthodes à la gestion des tableaux classiques de PHP
+
+C'est un tableau un peu plus avancé que ce qui est proposé par PHP et qui dispose de plus de fonctionnalités. On verra cela un peu plus tard.
+
+Au niveau de notre table Animal, Enity/Animal.php on va regarder la modification qui à été apportée et on peut voir que nous avons bien un nouveau champ $famille qui permet de faire la jointure entre les deux tables. Ce sera donc notre clé étrangère faisant le lien avec la table famille. Nous avons bien entendu à la fin du fichier le getter et le setter associé.
+
+
+6. Vider la BD avant de lancer la migration (à cause du nouveau champ)
+
+localhost/phpmyadmin
+
+7. Réaliser la migration pour créer la nouvelle "Entity"
+
+	$ symfony console make:migration
+
+	           
+	  Success! 
+           
+
+	 Next: Review the new migration "migrations/Version20220512150638.php"
+	 Then: Run the migration with php bin/console doctrine:migrations:migrate
+
+
+	$ symfony console doctrine:migration:migrate
+
+	 [notice] Migrating up to DoctrineMigrations\Version20220512150638
+
+localhost/phpmyadmin
+
+
+8. Remplissage de la BD : Fixtures
+
+Important: Il va falloir d'abord créer nos Famille avant de les rajouter à nos animaux.
+
+DataFixtures/AnimalFixtures.php
+
+	...
+	use App\Entity\Famille;
+	
+	...
+	
+	/**
+     *  Création des Familles 
+     */
+    
+	$c1 = new Famille();
+    $c1->setLibelle("mammifères")
+        ->setDescription("Animaux vertébrés nourissant leurs petits avec du lait")
+    ;
+    $manager->persist($c1);
+
+	.
+	.
+	.
+
+	/**
+    *  Création des Animaux  
+    */
+
+	...
+		 ->setFamille($c1)
+	;
+
+	.
+	.
+	.
+	.
+
+
+Charger les nouvelles données
+
+	$ symfony console doctrine:fixtures:load
+
+	 > purging database
+	 > loading App\DataFixtures\AnimalFixtures
+
 ##### 4.33. Famille : Affichage
 ##### 4.34. Famille : lister les animaux
 ##### 4.35. Continent : Relation 1.n - 1.n
