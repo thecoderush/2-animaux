@@ -2970,6 +2970,157 @@ localhost/phpmyadmin
 127.0.0.1:8000
 
 ##### 4.31. La page d'un animal
+
+(cf. screenshot)
+
+Dans cette video nous allons créer une nouvelle page permettant de lister les informations d'un animal.
+
+Pour cela on devra créer une nouvelle route que nous allons appeler afficher_animal et qui ira pointer sur /animal
+
+...
+
+On ira rajouter le fait d'afficher les informations d'un animal en utilisant l'injection de dépendance que nous avons déjà vu pour rajouter le repository et il faudra ensuite récupérer l'animal. 
+
+Pour ce faire on ira rajouter directement dans la route l'identifiant de celui-ci 
+
+	#[Route('/'animal/{id}, name: 'afficher_animal')]
+
+que l'on pourra directement récupérer au niveau de notre fonction, et à partir de notre repository on pourra utiliser la fonction find($id) 
+
+Enfin Symfony met à disposition la fonctionnalité du "parameter converter" qui va permettre d'aller récupérer directement un objet eet ici on indiquera que notre fonction va récupérer un animal.
+
+Ainsi à partir de cette fonctionnalité la, l'identifiant qui est transmis au niveau de la route sera converti directement en entité animal à partir de cet id. 
+Donc cela ira récupérer l'animal qui dispose de cet id. Ce qui permettra très rapidement de récupérer les informations de notre animal sans rajouter une quelconque ligne liée au repository. 
+
+Ainsi on pourra transmettre les informations à notre vue et enfin les afficher.
+
+
+1. Créer la route et l'affichage de base de la page
+2. Lister les informations de l'animal
+
+---
+
+1. Créer la route et l'affichage de base de la page
+
+AnimalController.php
+
+	...
+	[Route('/animal/', name: 'afficher_animal')]
+    public function afficherAnimal(): Response
+    {
+        return $this->render('animal/afficherAnimal.html.twig');
+    }
+	...
+
+Créer le nouveau template 
+
+templates/animal/afficherAnimal.html.twig
+
+	...
+	{% block title %}Affichage de l'animal{% endblock %}
+
+	{% block monTitre %}Affichage de l'animal{% endblock %}
+	...
+
+127.0.0.1:8000/animal
+
+On va maintenant rajouter un lien pour chaque animal afin nous puissions accéder à une nouvelle page pour chaque un animal. 
+
+On va rendre cliquable le nom de chaque animal et on enverra l'identifiant de l'animal dans notre lien.
+
+Je vais donc créer une balise anchor dans notre templage index.html au niveau di nom de l'animal. Il faut mettre le chemin dans le href="" qui sera du Twig en utilisant la fonction path() en lui indiquant la route souhaité ainsi que l'identifiant de l'animal. 
+
+Je vous rappelle que pour cela on utlise un objet au format JSON dans lequel on indique que l'on veut transférer l'identifiant (id) et au va y mettre sa valeur qui sera animal.id 
+
+templates/animal/index.html.twig
+
+	<h2><a href="{{ path('afficher_animal', {'id' : animal.id }) }}">{{ animal.nom }}</a></h2>
+
+En faisant ainsi on va pouvoir récupérer cette information au niveau du contrôleur sur notre route afficher_animal et pour cela on indique simplement à la suite que l'on veut l'identifiant à la route et on le récupère dans la fonction.
+
+AnimalController.php
+
+	...
+	[Route('/animal/{id}', name: 'afficher_animal')]
+    public function afficherAnimal($id): Response
+	...
+
+En faisant ainsi on va déjà tester si on récupère bien cet id
+
+	...
+	echo "ID: " . $id;
+	...
+
+Maintenant il faut transformer cet identifiant pour récuéprer l'animal et envoyer les informations à la vue pour qu'elle puisse afficher l'animal.
+
+	...
+	public function afficherAnimal(AnimalRepository $repository, $id): Response
+    {
+        $animal = $repository->find($id);
+		return $this->render('animal/afficherAnimal.html.twig', [
+		    "animal" => $animal,
+		]);
+	}
+	...
+
+En faisant ainsi on va pouvoir modifier notre template
+
+templates/animal/afficherAnimal.php
+
+	...
+	{% block monTitre %}Affichage de l'animal {animal.nom}{% endblock %}
+	...
+
+https://127.0.0.1:8000/animal/6
+
+
+Je vais utiliser le "Parameter Converter"  en supprimant ce que nous venons de faire dans les paramètres de notre fonction afficherAnimal() et les remplacer par Animal $animal. 
+
+Donc en indiquant directement la classe, ici Symfony sait que à partir de l'identifiant qui est mis dans la route on va récupérer un animal qui dispose de cet identifiant. 
+
+Je peux donc supprimer également l'utilisiation du repository.
+
+AnimalController.php
+
+	...
+	use App\Entity\Animal;
+
+	...
+	public function afficherAnimal(Animal $animal): Response
+	...
+
+https://127.0.0.1:8000/animal/6
+
+
+2. Lister les informations de l'animal
+
+Maintenant on va réaliser l'affichage dans notre page afficherAnimal.html
+
+afficherAnimal.html.twig
+
+	...
+	<div class="row align-items-center">
+        <div class="col-2 text-center">
+            <img src="{{ asset('images/' ~ animal.image) }}">
+        </div>
+        <div class="col-auto">
+            <div>Description: {{ animal.description }}</div>
+            <div>Poids: {{ animal.poids }}</div>
+            <div>Dangereux: 
+                {% if animal.dangereux %}
+                    <span class="badge bg-danger">oui</span>
+                {% else %}
+                    <span class="badge bg-success">non</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+	...
+
+https://127.0.0.1:8000/animal/6
+https://127.0.0.1:8000/animal/8
+
+
 ##### 4.32. Famille : Relation 1.1 - 1.n
 ##### 4.33. Famille : Affichage
 ##### 4.34. Famille : lister les animaux
