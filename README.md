@@ -3285,6 +3285,95 @@ Charger les nouvelles données
 	 > loading App\DataFixtures\AnimalFixtures
 
 ##### 4.33. Famille : Affichage
+
+(cf. screenshots)
+
+1. Dans le Template listant les animaux, ajouter la famille.
+2. Le lien sera généré plus tard (il faut créer les pages liées aux familles)
+
+
+1. Dans le Template listant les animaux, ajouter la famille.
+
+templates/index.hmtl.twig 
+
+	...
+	<div><a href="" class="btn btn-primary">{{ animal.famille.libelle }}</a></div>
+	...
+
+Ajouter un nouvel élément dans le Menu qui va nous permettre de lister les familles et réaliser la page correspondante
+
+templates/base.html.twig
+
+	...
+	<li class="nav-item">
+    	<a class="nav-link" href="{{ path('animaux') }}">Animaux</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ path('familles') }}">Familles</a>
+    </li>
+	...
+
+2. Le lien sera généré plus tard (il faut créer les pages liées aux familles)
+
+2.1. Créer le contrôleur et la vue associée pour lister les familles
+
+	$ symfony console make:controller FamilleController
+
+	 created: src/Controller/FamilleController.php
+ 	 created: templates/famille/index.html.twig
+
+           
+  	 Success! 
+
+
+2.2. Mettre à jour le contrôleur, le menu et la vue 
+
+FamilleController.php
+
+	...
+	#[Route('/familles', name: 'familles')]
+    public function index(): Response
+    {
+        return $this->render('famille/familles.html.twig'
+	...
+
+templates/index.html.twig rename to templates/familles.html.twig
+
+	...
+	{% block title %}Familles{% endblock %}
+
+	{% block monTitle %}Page listant les familles{% endblock %}
+	...
+
+
+127.0.0.1:8000
+
+Maintenant il faut lister dans cette page l'ensemble des familles
+
+FamilleController.php
+
+	...
+	use App\Repository\FamilleRepository;
+
+	...
+	public function index(FamilleRepository $repository): Response
+    {
+        $famille = $repository->findAll();
+	...
+			'familles' => $familles
+
+temlates/familles.html.twig
+
+	...
+	% for famille in familles %}
+        <h2 class="border-bottom border-primary">{{ famille.libelle | capitalize }}</h2>
+        <div>{{ famille.description }}</div>
+    {% endfor %}
+	...
+
+https://127.0.0.1:8000/familles
+
+
 ##### 4.34. Famille : lister les animaux
 ##### 4.35. Continent : Relation 1.n - 1.n
 ##### 4.36. Lister les continents
