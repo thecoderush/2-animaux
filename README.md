@@ -3524,7 +3524,110 @@ Rappel: animal.famille fait appel au Getter getFamille() récupérant une famill
 
 
 ##### 4.35. Continent : Relation 1.n - 1.n
+
+(cf.screenshot)
+
+1. Ajout d'une table Continent pour classifier nos animaux
+2. Créer l'entité "Continent"
+3. Relation de type ManyToMany
+4. Vider la BD
+5. La table intermédiaire a été créée
+6. Modifier le fichier des "Fixtures"
+
+
+	$ symfony console make:entity Continent
+
+	libelle
+	string 
+	255
+
+	animaux
+	relation
+	Animal
+	ManyToMany
+
+	Do you want to add a new property to Animal so that you can access/update Continent objects from it - e.g. $animal->getContinents()? (yes/no) [yes]:
+	yes
+
+	New field name inside Animal [continents]:
+
+	 updated: src/Entity/Continent.php
+ 	 updated: src/Entity/Animal.php
+
+      Success! 
+
+4. 
+
+Note: Effacez les animaux avant de supprimez les familles
+
+localhost/phpmyadmin
+
+	$ symfony console make:migration
+
+		 Success! 
+           
+
+	 Next: Review the new migration "migrations/Version20220513192450.php"
+	 Then: Run the migration with php bin/console doctrine:migrations:migrate
+
+	$ symfony console doctrine:migration:migrate
+
+	 [notice] Migrating up to DoctrineMigrations\Version20220513192450
+	 [notice] finished in 85.3ms, used 20M memory, 1 migrations executed, 4 sql queries
+
+ localhost/phpmyadmin          
+
+5.
+
+La table supplémentaire (en plus de la table continent) continent_animal qui est notre association que nous avions dans le modèle merise (cf. screenshot) et qui va faire le lien entre les deux tables. 
+
+Il y a bien une relation entre les deux tables continent et animal contenant deux clés étrangères. 
+
+6. 
+
+AnimalFixtures.php
+
+	...
+	use App\Entity\Continent;
+
+	...
+	/**
+    *  Création des Continents 
+    */
+    $b1 = new Continent();
+	$b1->setLibelle("Europe");
+    $manager->persist($b1);
+	.
+	.
+	.
+	....
+		->addContinent($b1);
+		->addContinent($b2);
+		->addContinent($b3);
+		->addContinent($b4);
+		->addContinent($b5);
+	.
+	.
+	.
+
+	$ symfony console doctrine:fixtures:load
+
+	 Careful, database "animaux" will be purged. Do you want to continue? (yes/no) [no]:
+ 	 > y
+
+     > purging database
+     > loading App\DataFixtures\AnimalFixtures
+
+localhost/phpmyadmin
+
+
 ##### 4.36. Lister les continents
+
+
 ##### 4.37. La page d'un continent et les routes
+
+
 ##### 4.38. Personnes - Relation 1.n - 1.n avec propriété
+
+
 ##### 4.39. Affichage des personnes et des animaux
