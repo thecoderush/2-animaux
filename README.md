@@ -3375,6 +3375,154 @@ https://127.0.0.1:8000/familles
 
 
 ##### 4.34. Famille : lister les animaux
+
+(cf. screenshots)
+
+1. Grâce à la fonction getAnimaux() présente dans la classe Famille on peut récupérer les animaux qui sont liés. On peut donc boucler dans le Template Twig.
+
+Remarque: On va utiliser ici la "Collection" des animaux cad que dans Famille.php nous avons un nouveau champ Collection Animal avec la fonction getAnimaux() et qui va nous permettre de récupérer la liste des animaux grâce à une Collection. Une Collection c'est simplement une liste de plusieurs objets qui seront ici de type Animal.
+
+2. Créer la page permettant d'accéder aux informations d'une famille et rajouter les liens pour y accéder.
+
+1. 
+On va devoir réaliser une nouveller boucle for 
+Et dans cette boucle for il va falloir parcourir les animaux d'une famille. 
+Les animaux d'une famille c'est ce que nous avons, dans l'entité Famille, la propriété qui s'appelle $animaux et qui contient, si on va voir le getter, la Collection d'animaux. 
+
+Donc on utilisant le methode getAnimaux() on va pouvoir récupérer la liste de tous les animaux de la Famille. Et donc lister les informations de celle-ci.
+
+Templates/familles.html.twig 
+
+	...
+	{% for animal in famille.animaux %}
+        {{ animal.nom }}
+    {% endfor %}
+
+https://127.0.0.1:8000/familles
+
+Puis rajouter le design:
+
+	...
+	<div class="row">
+		{% for animal in famille.animaux %}
+			<div class="col-6">
+				<div class="row align-items-center">
+					<div class="col-2 text-center">
+            			<img src="{{ asset('images/' ~ animal.image) }}">
+        			</div>
+        			<div class="col-auto">
+            			<h2><a href="{{ path('afficher_animal', { 'id': animal.id })  }}">{{ animal.nom }}</a></h2>
+            			<div>{{ animal.description }}</div>
+            			<div><a href="" class="btn btn-primary">{{ animal.famille.libelle }}</a></div>
+        			</div>
+    			</div>
+			</div>
+	...	
+
+https://127.0.0.1:8000/familles
+
+Par contre au niveau responsive les éléments se chevauchent. Il faut rendre les images "fluides" cad qu'elle puissent se "resize"
+
+Templates/familles.html.twig
+
+	...
+	<img src="{{ asset('images/' ~ animal.image) }}" class="img-fluid">
+	...
+
+L'image en format mobile deviens trop petite. Donc on va devoir influer églalement sur les colonnes. Cad qu'a partir d'une certaine taille d'écran on ne voudra pas que ce soit deux colonnes mais plus qu'une.
+
+	...
+    <div class="col-12 col-md-6 col-lg-2 text-center"
+	    <img src="{{ asset('images/' ~ animal.image) }}" class="img-fluid">
+	...
+
+	<div class="col-auto">
+
+Note: en réalité il faut mettre col qui va prendre tout l'espace disponible. Car col-auto prend la taille du contenu et non la taille restante.
+
+On peut également aligner les autres colonnes (nom et description de l'animal) au centre (lorsque la taille d'écran est small type mobile)
+
+	...
+	<div class="col text-center">
+	...
+
+2. 
+
+FamilleController.php
+
+	...
+	use App\Entity\Famille;
+
+	...
+	 #[Route('/famille/{id}', name: 'afficher_famille')]
+    public function afficherFamille(Famille $famille): Response
+    {
+        return $this->render('famille/famille.html.twig', [
+            'famille' => $famille,
+
+	...
+
+On va créer un template dédié 
+
+Templates/famille/famille.html.twig 
+
+	...
+	<div>{{ famille.description }}</div>
+    <div class="row">
+        {% for animal in famille.animaux %}
+            <div class="col-6">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-6 col-lg-2 text-center">
+                        <img src="{{ asset('images/' ~ animal.image) }}" class="img-fluid">
+                    </div>
+                    <div class="col text-center">
+                        <h2><a href="{{ path('afficher_animal', { 'id': animal.id })  }}">{{ animal.nom }}</a></h2>
+                        <div>{{ animal.description }}</div>
+                        <div><a href="" class="btn btn-primary">{{ animal.famille.libelle }}</a></div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+	...
+
+https://127.0.0.1:8000/famille/1
+https://127.0.0.1:8000/famille/2
+https://127.0.0.1:8000/famille/3
+
+Il suffit maintenant de rajouter les liens sur la page Familles, la page Animaux, et Animal
+
+cad que le libelle de chacune des familles sera cliquable pour accéder à ces pages.
+
+familles.html.twig
+
+
+	...
+	<h2 class="border-bottom border-primary"><a href="{{ path('afficher_famille', {'id' : famille.id }) }}">{{ famille.libelle | capitalize }}</a></h2>
+	...
+
+https://127.0.0.1:8000/familles
+
+
+Templates/animal/index.html.twig
+
+	...
+	<div><a href="{{ path('afficher_famille', { 'id': animal.famille.id }) }}" class="btn btn-primary">{{ animal.famille.libelle }}</a></div>
+
+https://127.0.0.1:8000/
+
+
+afficherAnimal.html.twig
+
+	...
+	<div><a href="{{ path('afficher_famille', { 'id': animal.famille.id }) }}" class="btn btn-primary">{{ animal.famille.libelle }}</a></div>
+	...
+
+https://127.0.0.1:8000/animal/11
+
+Rappel: animal.famille fait appel au Getter getFamille() récupérant une famille dans l'entité Animal. Ainsi nous disposons d'un objet Animal que nous pouvons utiliser "normalement".
+
+
 ##### 4.35. Continent : Relation 1.n - 1.n
 ##### 4.36. Lister les continents
 ##### 4.37. La page d'un continent et les routes
