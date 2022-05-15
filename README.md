@@ -3623,6 +3623,148 @@ localhost/phpmyadmin
 
 ##### 4.36. Lister les continents
 
+(cf. screenshots)
+
+Dans cette video nous allons utiliser les nouvelles informations des continents que nous avons ajouté en BD.
+
+1. Afficher les continents pour les animaux
+1.2. Dans le fichier Twig listant les animaux (pour lister les continents d'un animal)
+
+2. Créer la page listant les continents (pour lister tous les animaux qui y sont présents) 
+2.1. Faire le contrôleur et les vues
+
+3. Créer la page listant un seul continent
+3.1. Faire le contrôleur et les vues
+
+4. Mettre à jour les autres pages (pour avoir l'ensemble des liens pour que toutes les pages puissent être liées entre elles)
+
+5. Les "autres" continents où sont présents les animaux
+5.1. Dans le template listant les animaux d'un continent (pour un continent donné on listera l'animal et pour cet animal on listera seulement les autres continent dans lequel il est aussi présent)
+
+---
+
+1. 
+
+On va utiliser $continents présent dans l'entité Animal grâce à la méthode getContinents() qui retourne une Collection. Donc pour chaque Animal nous aurons la liste de tous ses continents de manière très simple.
+
+Note: c'est vraiment l'un des très gros intérêts du framework Symfony. 
+
+templates/animal/index.html.twig
+
+	...
+	<div>
+    	{% for continent in animal.continents %}
+            {{ continent.libelle }}
+        {% endfor %}
+    </div>
+	...
+
+On va rajouter un bouton:
+
+	...
+            <a href="" class="btn btn-warning">{{ continent.libelle }}</a>
+	...
+
+https://127.0.0.1:8000/
+
+
+2.
+
+	$ symfony console make:controller ContinentController
+
+	 created: src/Controller/ContinentController.php
+	 created: templates/continent/index.html.twig
+
+           
+	   Success! 
+
+
+Renomer la route et la vue:
+
+ContinentController.php
+
+	...
+	#[Route('/continents', name: 'continents')]
+
+	...
+	return $this->render('continent/continents.html.twig', [
+	...
+
+
+Rajouter le lien vers la page Continents dans notre Menu: 
+
+base.html.twig
+
+	...
+	<li class="nav-item">
+        <a class="nav-link" href="{{ path('continents') }}">Continents</a>
+    </li>
+	...
+
+Renommer notre template et modifier le code:
+
+continents.html.twig
+
+	...
+	{% block title %}Continents{% endblock %}
+
+	{% block monTitre %}Voici la liste des contients{% endblock %}
+	...
+
+https://127.0.0.1:8000/
+https://127.0.0.1:8000/continents
+
+Le lien nous envoi bien sur la page des Continents. Il me reste plus qu'à afficher la liste des continents. 
+
+Pour cela, dans mon contrôleur Continent je vais envoyer la liste des continents à la vue.
+
+ContinentController.php
+
+	...
+	public function index(ContinentRepository $repository): Response
+	{
+        $continents = $repository->findAll();
+	...
+			'continents' => $continents,
+	...
+
+
+continents.html.twig
+
+	...
+	{% for continent in continents %}
+        {{ continent.libelle }}
+    {% endfor %}
+	...
+
+On va les mettre dans un titre avec du CSS et on va rajouter le même code cad la boucle for utilisé dans la page familles en modifiant famille par continent. Mais le code est exactement le même puisque nous avons à l'intérieur de nos entités "Continent" la propriété $animaux qui nous permet de récupérer directement toutes nos informations des animaux. Donc ici le code ne change pas puisque l'on récupère bien un animal et qu'un animal dispose bien d'un id, nom, image, etc... 
+	
+	...
+	
+		<h2 class="border-bottom border-primary">{{ continent.libelle }}</h2>
+		<div class="row">
+            {% for animal in continent.animaux %}
+                <div class="col-6">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-md-6 col-lg-2 text-center">
+                            <img src="{{ asset('images/' ~ animal.image) }}" class="img-fluid">
+                        </div>
+                        <div class="col text-center">
+                            <h2><a href="{{ path('afficher_animal', { 'id': animal.id }) }}">{{ animal.nom }}</a></h2>
+                            <div>{{ animal.description }}</div>
+                            <div><a href="{{ path('afficher_famille', { 'id': animal.famille.id }) }}" class="btn btn-primary">{{ animal.famille.libelle }}</a></div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+	...
+
+Remarque: on est aussi capable d'afficher le libelle de la famille et d'avoir le lien.
+
+https://127.0.0.1:8000/continents
+https://127.0.0.1:8000/famille/4
+
 
 ##### 4.37. La page d'un continent et les routes
 
